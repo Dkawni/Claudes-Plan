@@ -3,7 +3,7 @@ from local_code.stage_2_code.Method_MLP import Method_MLP
 from local_code.stage_2_code.Result_Saver import Result_Saver
 from local_code.stage_2_code.Setting_KFold_CV import Setting_KFold_CV
 from local_code.stage_2_code.Setting_Train_Test_Split import Setting_Train_Test_Split
-from local_code.stage_2_code.Evaluate_Accuracy import Evaluate_Accuracy
+from local_code.stage_2_code.Evaluate_Metrics import Evaluate_Accuracy
 import numpy as np
 import torch
 
@@ -40,9 +40,10 @@ if 1:
     print('************ Start ************')
     setting_obj.prepare(data_obj, method_obj, result_obj, evaluate_obj)
     setting_obj.print_setup_summary()
-    mean_score, std_score = setting_obj.load_run_save_evaluate()
+    results = setting_obj.load_run_save_evaluate()
     print('************ Overall Performance ************')
-    print('MLP Accuracy: ' + str(mean_score) + ' +/- ' + str(std_score))
+    for name, (mean, std) in results.items():
+        print(f'MLP {name}: {mean:.4f} +/- {std:.4f}')
     print('************ Finish ************')
     # ------------------------------------------------------
     

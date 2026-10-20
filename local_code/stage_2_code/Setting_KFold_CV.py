@@ -6,6 +6,8 @@ Concrete SettingModule class for a specific experimental SettingModule
 # License: TBD
 
 from local_code.base_class.setting import setting
+from local_code.stage_2_code.Evaluate_Metrics import (
+    Evaluate_Accuracy, Evaluate_Precision, Evaluate_Recall, Evaluate_F)
 from sklearn.model_selection import KFold
 import numpy as np
 
@@ -18,9 +20,16 @@ class Setting_KFold_CV(setting):
         loaded_data = self.dataset.load()
         
         kf = KFold(n_splits=self.fold, shuffle=True)
-        
+
+        evaluators = {
+            'accuracy': Evaluate_Accuracy('accuracy', ''),
+            'precision': Evaluate_Precision('precision', ''),
+            'recall': Evaluate_Recall('recall', ''),
+            'f1': Evaluate_F('f1', ''),
+        }
+        scores = {name: [] for name in evaluators}
+
         fold_count = 0
-        score_list = []
         for train_index, test_index in kf.split(loaded_data['X']):
             fold_count += 1
             print('************ Fold:', fold_count, '************')
@@ -34,10 +43,11 @@ class Setting_KFold_CV(setting):
             self.result.data = learned_result
             self.result.fold_count = fold_count
             self.result.save()
-            
-            self.evaluate.data = learned_result
-            score_list.append(self.evaluate.evaluate())
-        
-        return np.mean(score_list), np.std(score_list)
+
+            for name, ev in evaluators.items():
+                ev.data = learned_result
+                scores[name].append(ev.evaluate())
+
+        return {name: (np.mean(v), np.std(v)) for name, v in scores.items()}
 
         

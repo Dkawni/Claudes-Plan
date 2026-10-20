@@ -6,7 +6,7 @@ Concrete MethodModule class for a specific learning MethodModule
 # License: TBD
 
 from local_code.base_class.method import method
-from local_code.stage_2_code.Evaluate_Accuracy import Evaluate_Accuracy
+from local_code.stage_2_code.Evaluate_Metrics import Evaluate_Accuracy
 import torch
 from torch import nn
 import numpy as np
@@ -31,8 +31,6 @@ class Method_MLP(method, nn.Module):
         self.activation_func_1 = nn.ReLU()
         self.fc_layer_2 = nn.Linear(128, 10)
         # check here for nn.Softmax doc: https://pytorch.org/docs/stable/generated/torch.nn.Softmax.html
-        self.activation_func_2 = nn.Softmax(dim=1)
-
     # it defines the forward propagation function for input x
     # this function will calculate the output layer by layer
 
