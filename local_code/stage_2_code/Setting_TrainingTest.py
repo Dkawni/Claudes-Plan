@@ -1,50 +1,34 @@
-"""
-Concrete SettingModule class for training the given testing set
-"""
+'''
+Concrete SettingModule class for a specific experimental SettingModule
+'''
+
+# Copyright (c) 2017-Current Jiawei Zhang <jiawei@ifmlab.org>
+# License: TBD
 
 from local_code.base_class.setting import setting
-from local_code.stage_2_code.Evaluate_Metrics import (
-    Evaluate_Accuracy, Evaluate_Recall, Evaluate_F, Evaluate_Precision)
+from sklearn.model_selection import train_test_split
 import numpy as np
 
-class Setting_TrainingTest(setting):
-    test_dataset = None
-
+class Setting_Train_Test_Split(setting):
+    fold = 3
+    
     def load_run_save_evaluate(self):
-    # load the training and testing set separately
-        train_data = self.dataset.load()
-        test_data = self.test_dataset.load()
+        
+        # load dataset
+        loaded_data = self.dataset.load()
 
-    # train on train.csv and predict on test.csv
-        self.method.data = {
-            'train': {'X': np.array(train_data['X']), 'y': np.array(train_data['y'])},
-            'test': {'X': np.array(test_data['X']), 'y': np.array(test_data['y'])}
-        }
+        X_train, X_test, y_train, y_test = train_test_split(loaded_data['X'], loaded_data['y'], test_size = 0.33)
+
+        # run MethodModule
+        self.method.data = {'train': {'X': X_train, 'y': y_train}, 'test': {'X': X_test, 'y': y_test}}
         learned_result = self.method.run()
-
-    # save the predictions
+            
+        # save raw ResultModule
         self.result.data = learned_result
-        self.result.fold_count = 'test'
         self.result.save()
+            
+        self.evaluate.data = learned_result
+        
+        return self.evaluate.evaluate(), None
 
-    # score predictions
-        evaluators = {
-        'accuracy': Evaluate_Accuracy('accuracy', ''),
-        'precision': Evaluate_Precision('precision', ''),
-        'recall': Evaluate_Recall('recall', ''),
-        'f1' : Evaluate_F('f1', ''),
-        }
-
-        scores = {}
-        for name, ev in evaluators.items():
-            ev.data = learned_result
-            scores[name] = ev.evaluate()
-
-        # report the final training loss for methods that track it. Gradient-based
-        # methods (Method_MLP) expose loss_history; DT and SVM do not.
-        loss_history = getattr(self.method, 'loss_history', None)
-        if loss_history:
-            scores['loss'] = loss_history[-1]
-
-        return scores
-
+        

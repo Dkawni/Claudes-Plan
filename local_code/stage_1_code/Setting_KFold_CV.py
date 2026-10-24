@@ -26,7 +26,6 @@ class Setting_KFold_CV(setting):
             print('************ Fold:', fold_count, '************')
             X_train, X_test = np.array(loaded_data['X'])[train_index], np.array(loaded_data['X'])[test_index]
             y_train, y_test = np.array(loaded_data['y'])[train_index], np.array(loaded_data['y'])[test_index]
-        
             # run MethodModule
             self.method.data = {'train': {'X': X_train, 'y': y_train}, 'test': {'X': X_test, 'y': y_test}}
             learned_result = self.method.run()

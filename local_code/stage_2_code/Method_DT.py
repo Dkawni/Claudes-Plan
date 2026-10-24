@@ -1,3 +1,4 @@
+
 '''
 Concrete MethodModule class for a specific learning MethodModule
 '''
