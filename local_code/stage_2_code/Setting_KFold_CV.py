@@ -17,6 +17,9 @@ class Setting_KFold_CV(setting):
 
     def __init__(self, sName=None, sDescription=None):
         super().__init__(sName, sDescription)
+        # final training loss of each fold, for methods that expose a
+        # loss_history (e.g. Method_MLP). Empty for DT / SVM.
+        self.fold_losses = []
         # full per-epoch loss curve of each fold, used for convergence plots
         self.fold_loss_histories = []
 
@@ -37,6 +40,7 @@ class Setting_KFold_CV(setting):
         }
         scores = {name: [] for name in evaluators}
 
+        self.fold_losses = []
         self.fold_loss_histories = []
 
         X_all = np.array(loaded_data['X'])
@@ -61,10 +65,18 @@ class Setting_KFold_CV(setting):
                 ev.data = learned_result
                 scores[name].append(ev.evaluate())
 
-            # keep each fold's loss curve for the convergence plot. Gradient-based
+            # record the training loss for methods that track it. Gradient-based
             # methods (Method_MLP) expose loss_history; DT and SVM do not.
             loss_history = getattr(self.method, 'loss_history', None)
             if loss_history:
+                self.fold_losses.append(loss_history[-1])
                 self.fold_loss_histories.append(list(loss_history))
 
-        return {name: (np.mean(v), np.std(v)) for name, v in scores.items()}
+        results = {name: (np.mean(v), np.std(v)) for name, v in scores.items()}
+
+        # report loss last, after the four classification metrics
+        if self.fold_losses:
+            results['loss'] = (np.mean(self.fold_losses),
+                               np.std(self.fold_losses))
+
+        return results

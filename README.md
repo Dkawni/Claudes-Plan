@@ -9,12 +9,13 @@ included for comparison.
 
 Measured on the 10,000-image test set (seeds fixed, so these are reproducible):
 
-| Metric    | Score  |
-|-----------|--------|
-| Accuracy  | 0.9674 |
-| Precision | 0.9672 |
-| Recall    | 0.9671 |
-| F1        | 0.9671 |
+| Metric              | Score  |
+|---------------------|--------|
+| Accuracy            | 0.9674 |
+| Precision           | 0.9672 |
+| Recall              | 0.9671 |
+| F1                  | 0.9671 |
+| Final training loss | 0.0779 |
 
 Precision, Recall and F1 are **macro-averaged** — computed per digit class and
 then averaged with equal weight, so every class counts the same regardless of
@@ -49,12 +50,13 @@ across folds:
 python3 script/stage_2_script/script_mlp.py --kfold
 ```
 
-| Metric    | Score (mean ± std) |
-|-----------|--------------------|
-| Accuracy  | 0.9629 ± 0.0015    |
-| Precision | 0.9627 ± 0.0015    |
-| Recall    | 0.9626 ± 0.0015    |
-| F1        | 0.9626 ± 0.0015    |
+| Metric              | Score (mean ± std) |
+|---------------------|--------------------|
+| Accuracy            | 0.9629 ± 0.0015    |
+| Precision           | 0.9627 ± 0.0015    |
+| Recall              | 0.9626 ± 0.0015    |
+| F1                  | 0.9626 ± 0.0015    |
+| Final training loss | 0.0699 ± 0.0011    |
 
 ![Per-fold convergence](docs/mlp_training_convergence_kfold.png)
 
