@@ -1,34 +1,43 @@
-'''
-Concrete SettingModule class for a specific experimental SettingModule
-'''
-
-# Copyright (c) 2017-Current Jiawei Zhang <jiawei@ifmlab.org>
-# License: TBD
+"""
+Concrete SettingModule class for training the given testing set
+"""
 
 from local_code.base_class.setting import setting
-from sklearn.model_selection import train_test_split
+from local_code.stage_2_code.Evaluate_Metrics import (
+    Evaluate_Accuracy, Evaluate_Recall, Evaluate_F, Evaluate_Precision)
 import numpy as np
 
-class Setting_Train_Test_Split(setting):
-    fold = 3
-    
+class Setting_TrainingTest(setting):
+    test_dataset = None
+
     def load_run_save_evaluate(self):
-        
-        # load dataset
-        loaded_data = self.dataset.load()
+    # load the training and testing set separately
+        train_data = self.dataset.load()
+        test_data = self.test_dataset.load()
 
-        X_train, X_test, y_train, y_test = train_test_split(loaded_data['X'], loaded_data['y'], test_size = 0.33)
-
-        # run MethodModule
-        self.method.data = {'train': {'X': X_train, 'y': y_train}, 'test': {'X': X_test, 'y': y_test}}
+    # train on train.csv and predict on test.csv
+        self.method.data = {
+            'train': {'X': np.array(train_data['X']), 'y': np.array(train_data['y'])},
+            'test': {'X': np.array(test_data['X']), 'y': np.array(test_data['y'])}
+        }
         learned_result = self.method.run()
-            
-        # save raw ResultModule
-        self.result.data = learned_result
-        self.result.save()
-            
-        self.evaluate.data = learned_result
-        
-        return self.evaluate.evaluate(), None
 
-        
+    # save the predictions
+        self.result.data = learned_result
+        self.result.fold_count = 'test'
+        self.result.save()
+
+    # score predictions
+        evaluators = {
+        'accuracy': Evaluate_Accuracy('accuracy', ''),
+        'recall': Evaluate_Recall('recall', ''),
+        'precision': Evaluate_Precision('precision', ''),
+        'f1' : Evaluate_F('f1', ''),
+        }
+
+        scores = {}
+        for name, ev in evaluators.items():
+            ev.data = learned_result
+            scores[name] = ev.evaluate()
+
+        return scores
