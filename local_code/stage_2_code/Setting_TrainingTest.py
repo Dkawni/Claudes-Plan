@@ -40,11 +40,5 @@ class Setting_TrainingTest(setting):
             ev.data = learned_result
             scores[name] = ev.evaluate()
 
-        # report the final training loss for methods that track it. Gradient-based
-        # methods (Method_MLP) expose loss_history; DT and SVM do not.
-        loss_history = getattr(self.method, 'loss_history', None)
-        if loss_history:
-            scores['loss'] = loss_history[-1]
-
         return scores
 
