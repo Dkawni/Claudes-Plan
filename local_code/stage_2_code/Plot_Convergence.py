@@ -88,3 +88,56 @@ def plot_training_convergence(loss_history,
 
     plt.close(fig)
     return saved_to
+
+
+def plot_kfold_convergence(fold_loss_histories,
+                           save_path=None,
+                           title='MLP Training Convergence per Fold'):
+    '''
+    Plot one training-loss curve per cross-validation fold.
+
+    Parameters
+    ----------
+    fold_loss_histories : list of list of float
+        One per-epoch loss curve per fold.
+    save_path : str, optional
+        Destination file path for the figure. Parent directories are created
+        if they do not exist.
+    title : str
+        Figure title.
+
+    Returns
+    -------
+    str or None
+        The path the figure was written to, or None if it was not saved.
+    '''
+    if not fold_loss_histories:
+        raise ValueError(
+            'fold_loss_histories is empty - nothing to plot. Only '
+            'gradient-based methods record a loss curve.'
+        )
+
+    fig, ax = plt.subplots(figsize=(8, 5))
+
+    for i, history in enumerate(fold_loss_histories, start=1):
+        ax.plot(range(len(history)), history,
+                linewidth=2, label='Fold {}'.format(i))
+
+    ax.set_xlabel('Training epoch')
+    ax.set_ylabel('Cross-entropy loss')
+    ax.set_title(title)
+    ax.grid(True, alpha=0.3)
+    ax.legend(loc='upper right')
+    fig.tight_layout()
+
+    saved_to = None
+    if save_path:
+        directory = os.path.dirname(os.path.abspath(save_path))
+        if directory:
+            os.makedirs(directory, exist_ok=True)
+        fig.savefig(save_path, dpi=150)
+        saved_to = save_path
+        print('k-fold convergence plot saved to:', save_path)
+
+    plt.close(fig)
+    return saved_to

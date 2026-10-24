@@ -9,12 +9,13 @@ included for comparison.
 
 Measured on the 10,000-image test set (seeds fixed, so these are reproducible):
 
-| Metric    | Score  |
-|-----------|--------|
-| Accuracy  | 0.9674 |
-| Precision | 0.9672 |
-| Recall    | 0.9671 |
-| F1        | 0.9671 |
+| Metric              | Score  |
+|---------------------|--------|
+| Accuracy            | 0.9674 |
+| Precision           | 0.9672 |
+| Recall              | 0.9671 |
+| F1                  | 0.9671 |
+| Final training loss | 0.0779 |
 
 Precision, Recall and F1 are **macro-averaged** — computed per digit class and
 then averaged with equal weight, so every class counts the same regardless of
@@ -39,6 +40,33 @@ One caveat on the SVM row: kernel SVC scales roughly quadratically with
 training-set size, so it was fit on a 10,000-image stratified subsample rather
 than all 60,000. That is **not** a like-for-like comparison — the SVM saw a
 sixth of the training data the other two models did.
+
+### Cross-validated results
+
+`--kfold` runs 3-fold cross-validation on `train.csv` and reports mean ± std
+across folds:
+
+```
+python3 script/stage_2_script/script_mlp.py --kfold
+```
+
+| Metric              | Score (mean ± std) |
+|---------------------|--------------------|
+| Accuracy            | 0.9629 ± 0.0015    |
+| Precision           | 0.9627 ± 0.0015    |
+| Recall              | 0.9626 ± 0.0015    |
+| F1                  | 0.9626 ± 0.0015    |
+| Final training loss | 0.0699 ± 0.0011    |
+
+![Per-fold convergence](docs/mlp_training_convergence_kfold.png)
+
+Cross-validated accuracy (0.9629) sits slightly below the held-out test score
+(0.9674) because each fold trains on 40,000 images rather than the full 60,000.
+
+The fold shuffle is seeded (`--fold-seed`, default 2) so these numbers are
+reproducible. Reshuffling moves them a little — seeds 1, 2 and 7 give accuracies
+of 0.9615, 0.9629 and 0.9625 — so quote the seed alongside any cross-validated
+figure.
 
 ## Dataset and train/test split
 
@@ -106,6 +134,9 @@ From the repository root:
 # the MLP -- the main model
 python3 script/stage_2_script/script_mlp.py
 
+# the MLP under 3-fold cross-validation (reports mean +/- std)
+python3 script/stage_2_script/script_mlp.py --kfold
+
 # baselines
 python3 script/stage_2_script/script_decision_tree.py
 python3 script/stage_2_script/script_svm.py --subset 10000
@@ -124,17 +155,28 @@ working directory — no `PYTHONPATH` needed.
 
 Full-batch MLP training for 500 epochs takes a few minutes on CPU.
 
-### Baseline script options
+### Script options
 
-Both baseline scripts accept:
+All three model scripts accept:
 
-| Flag          | Effect                                                            |
-|---------------|-------------------------------------------------------------------|
-| `--subset N`  | train on a stratified subsample of N images (default: all)        |
-| `--kfold`     | run 3-fold cross-validation on `train.csv` and report mean ± std  |
-| `-C` (SVM)    | SVC regularization parameter, default 1.0                         |
+| Flag             | Effect                                                           |
+|------------------|------------------------------------------------------------------|
+| `--subset N`     | train on a stratified subsample of N images (default: all)       |
+| `--kfold`        | run cross-validation on `train.csv` and report mean ± std        |
+| `-C` (SVM only)  | SVC regularization parameter, default 1.0                        |
+
+`script_mlp.py` additionally accepts:
+
+| Flag             | Effect                                                           |
+|------------------|------------------------------------------------------------------|
+| `--folds K`      | number of cross-validation folds (default: 3)                    |
+| `--fold-seed S`  | seed for the k-fold shuffle (default: 2)                         |
+| `--epochs E`     | training epochs (default: 500)                                   |
 
 Use `--subset` with the SVM: a full 60,000-image fit runs for hours.
+
+`--epochs` and the layer sizes in `Method_MLP` are the knobs for the ablation
+study in report section 3.7.
 
 ## Layout
 
