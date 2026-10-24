@@ -1,0 +1,25 @@
+# ---- datasets ----
+# The stage 2 MNIST CSVs are ~128 MB (train.csv alone exceeds GitHub's 100 MB
+# per-file limit), so they are not tracked. See README.md for how to obtain them.
+data/
+
+# ---- generated experiment output ----
+result/
+
+# ---- python ----
+__pycache__/
+*.py[cod]
+*$py.class
+.Python
+build/
+dist/
+*.egg-info/
+.venv/
+venv/
+env/
+
+# ---- editors / OS ----
+.idea/
+.vscode/
+.DS_Store
+*.swp

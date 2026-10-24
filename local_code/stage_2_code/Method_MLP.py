@@ -30,6 +30,9 @@ class Method_MLP(method, nn.Module):
         # check here for nn.ReLU doc: https://pytorch.org/docs/stable/generated/torch.nn.ReLU.html
         self.activation_func_1 = nn.ReLU()
         self.fc_layer_2 = nn.Linear(128, 10)
+        # per-epoch training history, used for the convergence plot (report 3.5)
+        self.loss_history = []
+        self.accuracy_history = []
         # check here for nn.Softmax doc: https://pytorch.org/docs/stable/generated/torch.nn.Softmax.html
     # it defines the forward propagation function for input x
     # this function will calculate the output layer by layer
@@ -56,6 +59,10 @@ class Method_MLP(method, nn.Module):
         # for training accuracy investigation purpose
         accuracy_evaluator = Evaluate_Accuracy('training evaluator', '')
 
+        # reset the recorded history so repeated train() calls don't accumulate
+        self.loss_history = []
+        self.accuracy_history = []
+
         # it will be an iterative gradient updating process
         # we don't do mini-batch, we use the whole input as one batch
         # you can try to split X and y into smaller-sized batches by yourself
@@ -76,9 +83,15 @@ class Method_MLP(method, nn.Module):
             # update the variables according to the optimizer and the gradients calculated by the above loss.backward function
             optimizer.step()
 
-            if epoch%100 == 0:
-                accuracy_evaluator.data = {'true_y': y_true, 'pred_y': y_pred.max(1)[1]}
-                print('Epoch:', epoch, 'Accuracy:', accuracy_evaluator.evaluate(), 'Loss:', train_loss.item())
+            # record loss and accuracy for EVERY epoch so the convergence plot
+            # (report 3.5) has one data point per epoch
+            accuracy_evaluator.data = {'true_y': y_true, 'pred_y': y_pred.max(1)[1]}
+            epoch_accuracy = accuracy_evaluator.evaluate()
+            self.loss_history.append(train_loss.item())
+            self.accuracy_history.append(epoch_accuracy)
+
+            if epoch % 100 == 0:
+                print('Epoch:', epoch, 'Accuracy:', epoch_accuracy, 'Loss:', train_loss.item())
     
     def test(self, X):
         # do the testing, and result the result
