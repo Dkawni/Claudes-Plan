@@ -6,8 +6,8 @@ showing that the model converges gradually under gradient descent.
 '''
 
 import os
-
 import matplotlib
+
 # Use a non-interactive backend so the figure can be written to disk on any
 # machine, including headless ones (CI, remote shells, graders' containers).
 matplotlib.use('Agg')

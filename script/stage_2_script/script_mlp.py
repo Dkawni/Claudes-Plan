@@ -5,6 +5,7 @@ from local_code.stage_2_code.Setting_KFold_CV import Setting_KFold_CV
 from local_code.stage_2_code.Setting_TrainingTest import Setting_TrainingTest
 from local_code.stage_2_code.Setting_Train_Test_Split import Setting_Train_Test_Split
 from local_code.stage_2_code.Evaluate_Metrics import Evaluate_Accuracy
+from local_code.stage_2_code.Plot_Convergence import plot_training_convergence
 import numpy as np
 import torch
 
@@ -43,6 +44,8 @@ if 1:
     setting_obj.prepare(train_data_obj, method_obj, result_obj, evaluate_obj)
     setting_obj.print_setup_summary()
     results = setting_obj.load_run_save_evaluate()
+    plot_training_convergence(method_obj.loss_history, None, ",,/../result/stage_2_result/convergence.png")
+
     print('************ Overall Performance ************')
     for name, value in results.items():
         print(f'MLP {name}: {value:.4f}')
