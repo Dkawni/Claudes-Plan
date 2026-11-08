@@ -40,7 +40,7 @@ if 1:
 
     if 1:
         test_data_obj = Dataset_Loader('data', '')
-        test_data_obj.dataset_source_folder_path = '../../local_code/stage_3_data/'
+        test_data_obj.dataset_source_folder_path = '../../data/stage_3_data/'
         test_data_obj.dataset_source_file_name = 'CIFAR'
 
         method_obj = Method_CNN_CIFAR('convolution neural network', '')

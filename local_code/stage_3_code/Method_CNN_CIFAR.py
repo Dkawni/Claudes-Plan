@@ -9,7 +9,7 @@ import numpy as np
 
 class Method_CNN(method, nn.Module):
     data = None
-    max_epoch = 50
+    max_epoch = 25
     learning_rate = 1e-3
     optimizer_name = 'adam'
     loss_name = 'ce'
@@ -18,11 +18,13 @@ class Method_CNN(method, nn.Module):
     def __init__(self, mName, mDescription, hidden_sizes=(128,)):
         nn.Module.__init__(self)
         method.__init__(self, mName, mDescription)
-        self.conv1 = nn.Conv2d(3, 32, kernel_size=3, padding=1)  # (N,3,112,92) -> (N,32,112,92)
-        self.conv2 = nn.Conv2d(32, 64, kernel_size=3, padding=1)  # -> (N,64,56,46)
+        self.conv1 = nn.Conv2d(3, 64, kernel_size=3, padding=1)  # (N,3,112,92) -> (N,32,112,92)
+        self.conv2 = nn.Conv2d(64, 128, kernel_size=3, padding=1)  # -> (N,64,56,46)
         self.pool = nn.MaxPool2d(2, 2)
-        self.fc1 = nn.Linear(64 * 8 * 8, 128)  # after two pools: 112/4=28, 92/4=23
+        self.fc1 = nn.Linear(128 * 8 * 8, 128)  # after two pools: 112/4=28, 92/4=23
         self.fc2 = nn.Linear(128, 10)
+        self.batchNorm1 = nn.BatchNorm2d(64)
+        self.batchNorm2 = nn.BatchNorm2d(128)
 
         # ---------- data ----------
     def _make_dataset(self, split):
@@ -45,8 +47,8 @@ class Method_CNN(method, nn.Module):
 
     # ---------- model ----------
     def forward(self, x):
-        x = self.pool(F.relu(self.conv1(x)))  # (N,32,56,46)
-        x = self.pool(F.relu(self.conv2(x)))  # (N,64,28,23)
+        x = self.pool(F.relu(self.batchNorm1(self.conv1(x))))  # (N,32,56,46)
+        x = self.pool(F.relu(self.batchNorm2(self.conv2(x))))  # (N,64,28,23)
         x = x.view(x.size(0), -1)  # flatten -> (N, 64*28*23)
         x = F.relu(self.fc1(x))
         x = self.fc2(x)
@@ -92,7 +94,7 @@ class Method_CNN(method, nn.Module):
             avg_loss = running_loss / max(n_batches, 1)
             self.loss_history.append(avg_loss)
 
-            if epoch %10 == 0:
+            if epoch % 5 == 0:
                 accuracy_evaluator.data = {
                     'true_y': last_targets.cpu().numpy(),
                     'pred_y': last_preds.cpu().numpy(),
