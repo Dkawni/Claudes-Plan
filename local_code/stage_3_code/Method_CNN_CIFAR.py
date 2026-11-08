@@ -70,8 +70,10 @@ class Method_CNN(method, nn.Module):
         optimizer = self.get_optimizer()
         loss_function = self.get_loss_function()
         accuracy_evaluator = Evaluate_Accuracy('training evaluator', '')
-        train_loader, _ = self.split()
+        train_loader, val_loader = self.split()
         self.loss_history = []
+        self.val_loss_history = []
+        self.val_accuracy_history = []
 
         for epoch in range(self.max_epoch):
             running_loss = 0.0
@@ -93,7 +95,18 @@ class Method_CNN(method, nn.Module):
 
             avg_loss = running_loss / max(n_batches, 1)
             self.loss_history.append(avg_loss)
-
+            self.eval()
+            val_loss_sum, val_correct, val_total = 0.0, 0, 0
+            with torch.no_grad():
+                for inputs, targets in val_loader:
+                    y_pred = self.forward(inputs)
+                    val_loss_sum += loss_function(y_pred, targets).item() * len(targets)
+                    val_correct += (y_pred.max(1)[1] == targets).sum().item()
+                    val_total += len(targets)
+            self.train()
+            if val_total > 0:
+                self.val_loss_history.append(val_loss_sum / val_total)
+                self.val_accuracy_history.append(val_correct / val_total)
             if epoch % 5 == 0:
                 accuracy_evaluator.data = {
                     'true_y': last_targets.cpu().numpy(),
