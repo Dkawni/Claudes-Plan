@@ -5,6 +5,7 @@ from local_code.stage_3_code.Method_CNN_CIFAR import Method_CNN as Method_CNN_CI
 from local_code.stage_3_code.Result_Saver import Result_Saver
 from local_code.stage_3_code.Evaluate_Metrics import Evaluate_Accuracy, Evaluate_Precision, Evaluate_Recall, Evaluate_F
 from local_code.stage_3_code.Plot_Convergence import plot_training_convergence
+from local_code.stage_3_code.Setting_TrainingTest import Setting_TrainingTest
 import numpy as np
 import torch
 
@@ -27,9 +28,9 @@ if 1:
         result_obj.result_destination_folder_path = '../../result/stage_3_result/CNN_MNIST_'
         result_obj.result_destination_file_name = 'prediction_result_MNIST'
 
-    if 0:
+    if 1:
         test_data_obj = Dataset_Loader('data', '')
-        test_data_obj.dataset_source_folder_path = '../../local_code/stage_3_data/'
+        test_data_obj.dataset_source_folder_path = '../../data/stage_3_data/'
         test_data_obj.dataset_source_file_name = 'ORL'
 
         method_obj = Method_CNN_ORL('convolution neural network', '')
@@ -38,9 +39,9 @@ if 1:
         result_obj.result_destination_folder_path = '../../result/stage_3_result/CNN_ORL_'
         result_obj.result_destination_file_name = 'prediction_result_ORL'
 
-    if 1:
+    if 0:
         test_data_obj = Dataset_Loader('data', '')
-        test_data_obj.dataset_source_folder_path = '../../local_code/stage_3_data/'
+        test_data_obj.dataset_source_folder_path = '../../data/stage_3_data/'
         test_data_obj.dataset_source_file_name = 'CIFAR'
 
         method_obj = Method_CNN_CIFAR('convolution neural network', '')
@@ -49,7 +50,8 @@ if 1:
         result_obj.result_destination_folder_path = '../../result/stage_3_result/CNN_CIFAR_'
         result_obj.result_destination_file_name = 'prediction_result_CIFAR'
 
-    # setting_obj = Setting_KFold_CV('k fold cross validation', '')
+    method_obj.val_ratio = 0.0
+    setting_obj = Setting_TrainingTest('train on train set, test on test set', '')
     # setting_obj = Setting_Train_Test_Split('train test split', '')
 
     accuracy_obj = Evaluate_Accuracy('accuracy', '')
@@ -60,15 +62,10 @@ if 1:
 
     # ---- running section ---------------------------------
     print('************ Start ************')
-    data = test_data_obj.load()
-    method_obj.data = data
-    output = method_obj.run()
-    accuracy_obj.data = output
-    precision_obj.data = output
-    recall_obj.data = output
-    f1_obj.data = output
-    plot_training_convergence(method_obj.loss_history, None, '../../result/stage_3_result/CNN_MNIST_training_convergence.png')
-    result = {'accuracy': accuracy_obj.evaluate(), 'precision': precision_obj.evaluate(), 'recall': recall_obj.evaluate(), 'f1': f1_obj.evaluate()}
+    setting_obj.prepare(test_data_obj, method_obj, result_obj, accuracy_obj)
+    setting_obj.print_setup_summary()
+    result = setting_obj.load_run_save_evaluate()
+    plot_training_convergence(method_obj.loss_history, None, result_obj.result_destination_folder_path + 'training_convergence.png')
     print('************ Overall Performance ************')
     for name, value in result.items():
         print(f'CNN {name}: {value:.4f}')

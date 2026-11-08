@@ -31,7 +31,7 @@ class Dataset_Loader(dataset):
                 img = img.transpose(2, 0, 1)
             X.append(img)
             y.append(int(inst['label']))
-        X = np.stack(X)
+        X = np.ascontiguousarray(np.stack(X))
         y = np.array(y)
         if self.dataset_source_file_name == 'ORL':
             y = y - 1
