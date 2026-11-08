@@ -17,7 +17,8 @@ import matplotlib.pyplot as plt
 def plot_training_convergence(loss_history,
                               accuracy_history=None,
                               save_path=None,
-                              title='CNN Training Convergence'):
+                              title='CNN Training Convergence',
+                            val_loss_history=None):
     '''
     Plot training loss against epoch and save the figure to disk.
 
@@ -56,6 +57,11 @@ def plot_training_convergence(loss_history,
     ax_loss.set_ylabel('Cross-entropy loss', color='tab:red')
     ax_loss.tick_params(axis='y', labelcolor='tab:red')
     ax_loss.grid(True, alpha=0.3)
+
+
+    if val_loss_history:
+        ax_loss.plot(range(len(val_loss_history)), val_loss_history,
+                     color='tab:green', linewidth=2, label='Validation loss')
 
     handles, labels = ax_loss.get_legend_handles_labels()
 

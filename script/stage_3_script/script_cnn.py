@@ -17,7 +17,7 @@ if 1:
     #------------------------------------------------------
 
     # ---- objection initialization setction ---------------
-    if 1:
+    if 0:
         test_data_obj = Dataset_Loader('data', '')
         test_data_obj.dataset_source_folder_path = '../../data/stage_3_data/'
         test_data_obj.dataset_source_file_name = 'MNIST'
@@ -28,7 +28,7 @@ if 1:
         result_obj.result_destination_folder_path = '../../result/stage_3_result/CNN_MNIST_'
         result_obj.result_destination_file_name = 'prediction_result_MNIST'
 
-    if 0:
+    if 1:
         test_data_obj = Dataset_Loader('data', '')
         test_data_obj.dataset_source_folder_path = '../../data/stage_3_data/'
         test_data_obj.dataset_source_file_name = 'ORL'
@@ -50,7 +50,6 @@ if 1:
         result_obj.result_destination_folder_path = '../../result/stage_3_result/CNN_CIFAR_'
         result_obj.result_destination_file_name = 'prediction_result_CIFAR'
 
-    method_obj.val_ratio = 0.0
     setting_obj = Setting_TrainingTest('train on train set, test on test set', '')
     # setting_obj = Setting_Train_Test_Split('train test split', '')
 
@@ -65,7 +64,10 @@ if 1:
     setting_obj.prepare(test_data_obj, method_obj, result_obj, accuracy_obj)
     setting_obj.print_setup_summary()
     result = setting_obj.load_run_save_evaluate()
-    plot_training_convergence(method_obj.loss_history, None, result_obj.result_destination_folder_path + 'training_convergence.png', title='CNN Training Convergence (' + test_data_obj.dataset_source_file_name + ')')
+    plot_training_convergence(method_obj.loss_history, None,
+                              result_obj.result_destination_folder_path + 'training_convergence.png',
+                              title='CNN Training Convergence (' + test_data_obj.dataset_source_file_name + ')',
+                              val_loss_history = method_obj.val_loss_history)
     print('************ Overall Performance ************')
     for name, value in result.items():
         print(f'CNN {name}: {value:.4f}')
