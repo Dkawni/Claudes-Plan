@@ -9,22 +9,24 @@ import numpy as np
 
 class Method_CNN(method, nn.Module):
     data = None
-    max_epoch = 25
+    max_epoch = 10
     learning_rate = 1e-3
     optimizer_name = 'adam'
     loss_name = 'ce'
     val_ratio = 0.15
 
-    def __init__(self, mName, mDescription, hidden_sizes=(128,)):
+    def __init__(self, mName, mDescription):
         nn.Module.__init__(self)
         method.__init__(self, mName, mDescription)
-        self.conv1 = nn.Conv2d(3, 64, kernel_size=3, padding=1)  # (N,3,112,92) -> (N,32,112,92)
-        self.conv2 = nn.Conv2d(64, 128, kernel_size=3, padding=1)  # -> (N,64,56,46)
-        self.pool = nn.MaxPool2d(2, 2)
-        self.fc1 = nn.Linear(128 * 8 * 8, 128)  # after two pools: 112/4=28, 92/4=23
+        self.dropout = nn.Dropout(0.5)
+        self.conv1 = nn.Conv2d(3, 64, kernel_size=3, padding=1)  # (N,3,32,32)  -> (N,64,32,32)
+        self.conv2 = nn.Conv2d(64, 128, kernel_size=3, padding=1)  # (N,64,16,16) -> (N,128,16,16)
+        self.pool = nn.MaxPool2d(2, 2)  # halves spatial each use
+        self.fc1 = nn.Linear(128 * 8 * 8, 128)  # 8192 features in
         self.fc2 = nn.Linear(128, 10)
         self.batchNorm1 = nn.BatchNorm2d(64)
         self.batchNorm2 = nn.BatchNorm2d(128)
+
 
         # ---------- data ----------
     def _make_dataset(self, split):
@@ -41,23 +43,27 @@ class Method_CNN(method, nn.Module):
         val_size = int(len(full) * self.val_ratio)
         train_size = len(full) - val_size
         train_subset, val_subset = random_split(full, [train_size, val_size])
-        self.train_loader = DataLoader(train_subset, batch_size=64, shuffle=True)
-        self.val_loader = DataLoader(val_subset, batch_size=64, shuffle=False)
-        return self.train_loader, self.val_loader
+        train_loader = DataLoader(train_subset, batch_size=64, shuffle=True)
+        val_loader = DataLoader(val_subset, batch_size=64, shuffle=False)
+        return train_loader, val_loader
 
     # ---------- model ----------
     def forward(self, x):
         x = self.pool(F.relu(self.batchNorm1(self.conv1(x))))  # (N,32,56,46)
-        x = self.pool(F.relu(self.batchNorm2(self.conv2(x))))  # (N,64,28,23)
-        x = x.view(x.size(0), -1)  # flatten -> (N, 64*28*23)
+        x = self.pool(F.relu(self.batchNorm2(self.conv2(x)))) # (N,64,28,23)
+
+        # dropout implemented
+        x = torch.flatten(x, 1)
         x = F.relu(self.fc1(x))
+        x = self.dropout(x)
+
         x = self.fc2(x)
         return x
 
     def get_optimizer(self):
         if self.optimizer_name == 'sgd':
             return torch.optim.SGD(self.parameters(), lr=self.learning_rate)
-        return torch.optim.Adam(self.parameters(), lr=self.learning_rate)
+        return torch.optim.Adam(self.parameters(), lr=self.learning_rate, weight_decay=1e-4)
 
     def get_loss_function(self):
         if self.loss_name == 'hinge':
@@ -70,7 +76,9 @@ class Method_CNN(method, nn.Module):
         optimizer = self.get_optimizer()
         loss_function = self.get_loss_function()
         accuracy_evaluator = Evaluate_Accuracy('training evaluator', '')
-        train_loader, _ = self.split()
+        train_loader, val_loader = self.split()
+        imgs, labels = next(iter(train_loader))
+
         self.loss_history = []
 
         for epoch in range(self.max_epoch):
