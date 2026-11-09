@@ -18,3 +18,23 @@ if 1:
         for name, evaluator in evaluators.items():
             evaluator.data = result_obj.data
             print(f'CNN {name}: {evaluator.evaluate():.4f}')
+
+
+# ---- ablation results ----
+if 1:
+    for dataset_name in ['MNIST']:
+        print('************ Ablation results (' + dataset_name + ') ************')
+        print(f"{'config':<15}{'accuracy':>10}{'precision':>11}{'recall':>9}{'f1':>9}")
+        for config_name in ['baseline', 'kernel_5', 'deeper', 'avg_pooling']:
+            result_obj = Result_Loader('loader', '')
+            result_obj.result_destination_folder_path = '../../result/stage_3_result/ablation_' + dataset_name + '/'
+            result_obj.result_destination_file_name = config_name
+            result_obj.fold_count = 'test'
+            result_obj.load()
+
+            scores = []
+            for evaluator in [Evaluate_Accuracy('accuracy', ''), Evaluate_Precision('precision', ''),
+                              Evaluate_Recall('recall', ''), Evaluate_F('f1', '')]:
+                evaluator.data = result_obj.data
+                scores.append(evaluator.evaluate())
+            print(f"{config_name:<15}{scores[0]:>10.4f}{scores[1]:>11.4f}{scores[2]:>9.4f}{scores[3]:>9.4f}")
