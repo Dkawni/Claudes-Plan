@@ -28,7 +28,7 @@ if 1:
         result_obj.result_destination_folder_path = '../../result/stage_3_result/CNN_MNIST_'
         result_obj.result_destination_file_name = 'prediction_result_MNIST'
 
-    if 1:
+    if 0:
         test_data_obj = Dataset_Loader('data', '')
         test_data_obj.dataset_source_folder_path = '../../data/stage_3_data/'
         test_data_obj.dataset_source_file_name = 'ORL'
@@ -39,7 +39,7 @@ if 1:
         result_obj.result_destination_folder_path = '../../result/stage_3_result/CNN_ORL_'
         result_obj.result_destination_file_name = 'prediction_result_ORL'
 
-    if 0:
+    if 1:
         test_data_obj = Dataset_Loader('data', '')
         test_data_obj.dataset_source_folder_path = '../../data/stage_3_data/'
         test_data_obj.dataset_source_file_name = 'CIFAR'
