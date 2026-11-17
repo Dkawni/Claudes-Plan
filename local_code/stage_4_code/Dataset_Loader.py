@@ -6,56 +6,76 @@ Concrete IO class for a specific dataset
 # License: TBD
 #
 from local_code.base_class.dataset import dataset
-import pickle
 import numpy as np
+from collections import Counter
 
 import torch
-from torch.utils.data import Dataset, DataLoader
+from torch.utils.data import Dataset
 import glob
 import os
-print("CWD:", os.getcwd())
-print("Resolved:", os.path.abspath(self.dataset_source_folder_path))
-print("Exists:", os.path.exists(self.dataset_source_folder_path))
-class StoryDataset(Dataset):
-    def __init__(self, encoded_data, seq_length):
-        self.data = torch.tensor(encoded_data, dtype=torch.long)
-        self.seq_length = seq_length
-
-    def __len__(self):
-        # Number of non-overlapping or sliding chunks
-        return len(self.data) - self.seq_length
-
-    def __getitem__(self, idx):
-        chunk = self.data[idx : idx + self.seq_length + 1]
-        x = chunk[:-1]  # Input sequence
-        y = chunk[1:]   # Target sequence (shifted right by 1)
-        return x, y
-
 
 
 class Dataset_Loader(dataset):
     data = None
     dataset_source_folder_path = None
-    dataset_source_file_name = None   # 'MNIST', 'ORL' or 'CIFAR'
+    dataset_source_file_name = None
 
 
     def __init__(self, dName=None, dDescription=None):
         super().__init__(dName, dDescription)
 
 
-    def load(self):
-        story_files = glob.glob(self.dataset_source_folder_path + "/*.txt")
-        print("Folder:", self.dataset_source_folder_path)
-        print("Files found:", len(story_files))
-        raw_text = "\n\n---\n\n".join(
-            open(f, "r", encoding="utf-8").read() for f in story_files
-        )
-        vocab = sorted(list(set(raw_text)))
-        print(vocab[:100])
-        char_to_idx = {ch: i for i, ch in enumerate(vocab)}
-        # idx_to_char = {i: ch for i, ch in enumerate(vocab)}
+    def tokenize(self, text):
+        return text.lower().split()
 
-        encoded_text = [char_to_idx[ch] for ch in raw_text]
-        seq_length = 100
-        dataset = StoryDataset(encoded_text, seq_length)
-        return DataLoader(dataset, batch_size=64, shuffle=True, drop_last=True)
+    def build_vocab(self, tokenized_texts, min_freq=2, max_size=None):
+        """
+        Build a token->id mapping from a list of token lists.
+
+        tokenized_texts: List[List[str]]  (e.g. positive_texts + negative_texts)
+        min_freq:        drop tokens seen fewer than this many times
+        max_size:        optional cap on vocab size (including specials)
+        """
+        counter = Counter()
+        for tokens in tokenized_texts:
+            counter.update(tokens)
+
+        # Reserve special IDs first so they never shift
+        vocab = {"<pad>": 0, "<unk>": 1}
+
+        # Sort by frequency desc, then alphabetically for determinism
+        items = sorted(counter.items(), key=lambda kv: (-kv[1], kv[0]))
+        for token, freq in items:
+            if freq < min_freq:
+                continue
+            if max_size is not None and len(vocab) >= max_size:
+                break
+            vocab[token] = len(vocab)
+
+        return vocab
+
+    def load(self):
+        X = []
+        Y = []
+        positive_texts = []
+        negative_texts = []
+
+        story_files = glob.glob(os.path.join(self.dataset_source_folder_path, "pos/*.txt"))
+        for f in story_files:
+            with open(f, "r", encoding="utf-8") as fh:
+                positive_texts.append(self.tokenize(fh.read()))
+        story_files = glob.glob(os.path.join(self.dataset_source_folder_path, "neg/*.txt"))
+        for f in story_files:
+            with open(f, "r", encoding="utf-8") as fh:
+                negative_texts.append(self.tokenize(fh.read()))
+
+
+        vocab = self.build_vocab(positive_texts + negative_texts)
+        for review in positive_texts:
+            X.append([vocab.get(t, vocab['<unk>']) for t in review])
+            Y.append(1)
+        for review in negative_texts:
+            X.append([vocab.get(t, vocab['<unk>']) for t in review])
+            Y.append(0)
+
+        return {'X': X, 'Y': Y, 'dictionary': vocab}
