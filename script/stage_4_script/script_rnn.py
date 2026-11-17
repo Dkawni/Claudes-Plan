@@ -1,0 +1,63 @@
+from local_code.stage_4_code.Dataset_Loader import Dataset_Loader
+from local_code.stage_4_code.Result_Saver import Result_Saver
+from local_code.stage_4_code.Evaluate_Metrics import Evaluate_Accuracy, Evaluate_Precision, Evaluate_Recall, Evaluate_F
+from local_code.stage_4_code.Plot_Convergence import plot_training_convergence
+from local_code.stage_4_code.Setting_TrainingTest import Setting_TrainingTest
+import numpy as np
+import torch
+
+#---- Multi-Layer Perceptron script ----
+if 1:
+    #---- parameter section -------------------------------
+    np.random.seed(2)
+    torch.manual_seed(2)
+    #------------------------------------------------------
+
+    # ---- objection initialization setction ---------------
+
+    if 1:
+        test_data_obj = Dataset_Loader('data', '')
+        test_data_obj.dataset_source_folder_path = '../../data/stage_4_data/text_classification/test/neg'
+        # method_obj = Method_CNN_ORL('convolution neural network', '')
+
+        result_obj = Result_Saver('saver', '')
+        result_obj.result_destination_folder_path = '../../result/stage_4_result/RNN'
+        result_obj.result_destination_file_name = 'prediction_result_ORL'
+
+    if 0:
+        test_data_obj = Dataset_Loader('data', '')
+        test_data_obj.dataset_source_folder_path = '../../data/stage_3_data/'
+        test_data_obj.dataset_source_file_name = 'CIFAR'
+
+        method_obj = Method_CNN_CIFAR('convolution neural network', '')
+
+        result_obj = Result_Saver('saver', '')
+        result_obj.result_destination_folder_path = '../../result/stage_3_result/CNN_CIFAR_'
+        result_obj.result_destination_file_name = 'prediction_result_CIFAR'
+
+    # setting_obj = Setting_TrainingTest('train on train set, test on test set', '')
+    # setting_obj = Setting_Train_Test_Split('train test split', '')
+
+    # accuracy_obj = Evaluate_Accuracy('accuracy', '')
+    # precision_obj = Evaluate_Precision('precision', '')
+    # recall_obj = Evaluate_Recall('recall', '')
+    # f1_obj = Evaluate_F('f1', '')
+    # ------------------------------------------------------
+
+    # ---- running section ---------------------------------
+    print('************ Start ************')
+
+    test_data_obj.load()
+
+    # setting_obj.prepare(test_data_obj, method_obj, result_obj, accuracy_obj)
+    # setting_obj.print_setup_summary()
+    # result = setting_obj.load_run_save_evaluate()
+    # plot_training_convergence(method_obj.loss_history, None,
+                             # result_obj.result_destination_folder_path + 'training_convergence.png',
+                             # title='CNN Training Convergence (' + test_data_obj.dataset_source_file_name + ')',
+                             # val_loss_history = method_obj.val_loss_history)
+    # print('************ Overall Performance ************')
+    # for name, value in result.items():
+        # print(f'CNN {name}: {value:.4f}')
+    # print('************ Finish ************')
+    # ------------------------------------------------------
