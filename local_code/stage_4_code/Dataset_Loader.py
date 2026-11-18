@@ -13,12 +13,15 @@ import torch
 from torch.utils.data import Dataset
 import glob
 import os
+import re
 
 
 class Dataset_Loader(dataset):
     data = None
     dataset_source_folder_path = None
     dataset_source_file_name = None
+    vocab = None
+    max_len = 300
 
 
     def __init__(self, dName=None, dDescription=None):
@@ -26,7 +29,9 @@ class Dataset_Loader(dataset):
 
 
     def tokenize(self, text):
-        return text.lower().split()
+        text = text.lower().replace('<br />', ' ')
+        tokens = re.findall(r"[a-z0-9']+", text)
+        return tokens[:self.max_len]
 
     def build_vocab(self, tokenized_texts, min_freq=2, max_size=None):
         """
@@ -69,8 +74,10 @@ class Dataset_Loader(dataset):
             with open(f, "r", encoding="utf-8") as fh:
                 negative_texts.append(self.tokenize(fh.read()))
 
-
-        vocab = self.build_vocab(positive_texts + negative_texts)
+        if self.vocab is None:
+            vocab = self.build_vocab(positive_texts + negative_texts)
+        else:
+            vocab = self.vocab
         for review in positive_texts:
             X.append([vocab.get(t, vocab['<unk>']) for t in review])
             Y.append(1)
