@@ -8,7 +8,7 @@ import numpy as np
 
 class Method_RNN(method, nn.Module):
     data = None
-    max_epoch = 10
+    max_epoch = 1
     learning_rate = 1e-3
     optimizer_name = 'adam'
     loss_name = 'ce'
