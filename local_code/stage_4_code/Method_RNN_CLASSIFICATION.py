@@ -8,14 +8,14 @@ import numpy as np
 
 class Method_RNN(method, nn.Module):
     data = None
-    max_epoch = 1
+    max_epoch = 3
     learning_rate = 1e-3
     optimizer_name = 'adam'
     loss_name = 'ce'
     val_ratio = 0.15
 
     def __init__(self, mName, mDescription, *,
-                 vocab_size, embed_dim=64, hidden_size=128,
+                 vocab_size, embed_dim=128, hidden_size=128,
                  num_layers=1, num_classes=2, rnn_type='lstm',
                  bidirectional=False, dropout=0.0):
         nn.Module.__init__(self)
@@ -50,10 +50,10 @@ class Method_RNN(method, nn.Module):
                                       enforce_sorted=False)
         packed_out, h_n = self.rnn(packed)
         out, _ = pad_packed_sequence(packed_out, batch_first=True)  # unpadded to max length
-        # last valid timestep per sequence:
-        idx = (lengths - 1).clamp(min=0)
-        last = out[torch.arange(out.size(0)), idx]  # (N, H*dirs)
-        return self.fc(self.dropout(last))
+        # changed to mean pooling: average the output for all real words
+        mask = (torch.arange(out.size(1))[None, :] < lengths[:, None]).unsqueeze(2).float()
+        mean = (out * mask).sum(dim=1) / lengths[:, None].float()
+        return self.fc(self.dropout(mean))
 
     def _make_dataset(self, split):
         d = self.data[split]

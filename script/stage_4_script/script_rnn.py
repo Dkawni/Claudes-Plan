@@ -55,7 +55,7 @@ if 1:
     test_data = test_data_obj.load()
 
     model = Method_RNN('rnn', '', vocab_size=len(train_data['dictionary']), rnn_type='lstm',
-                       hidden_size=128, num_layers=1, bidirectional=False, dropout=0.0)
+                       hidden_size=128, num_layers=1, bidirectional=False, dropout=0.5)
     model.data = {'train': {'X':train_data['X'], 'y' : train_data['Y']}, 'test' : {'X':test_data['X'], 'y' : test_data['Y']}}
     result = model.run()
 
